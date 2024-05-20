@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1080266264659",
+    "project_id": "dbbase-team-minihead",
+    "storage_bucket": "dbbase-team-minihead.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1080266264659:android:eff76fb692358ade9036a6",
+        "android_client_info": {
+          "package_name": "com.minihead.mad_team_minihead"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDQGDsNHLcuOXKOc5jQRR4XZ8tq-uTGjAI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
