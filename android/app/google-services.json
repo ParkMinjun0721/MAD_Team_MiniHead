@@ -12,7 +12,20 @@
           "package_name": "com.minihead.mad_team_minihead"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "1080266264659-dosejsmhrts92v3n48st3n0mph2tm10o.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.minihead.mad_team_minihead",
+            "certificate_hash": "fbb595a6ffdc09ad444ddf6055f2f23309bbf849"
+          }
+        },
+        {
+          "client_id": "1080266264659-dkqq3hig1gh0mv41o9vqkf46s535a7fo.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyDQGDsNHLcuOXKOc5jQRR4XZ8tq-uTGjAI"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1080266264659-dkqq3hig1gh0mv41o9vqkf46s535a7fo.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "1080266264659-ia3mgsocam03l5gmil5j6i8e1q6v16ed.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.minihead.madTeamMinihead"
+              }
+            }
+          ]
         }
       }
     }
