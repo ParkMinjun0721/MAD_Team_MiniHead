@@ -6,6 +6,7 @@ import 'addimage.dart'; // addimage.dart 파일 import
 import 'settings.dart'; // settings.dart 파일 import
 import 'help.dart'; // help.dart 파일 import
 import 'origin.dart'; // origin.dart 파일 import
+import 'profile.dart'; // profile.dart 파일 import
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
@@ -92,106 +93,122 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       bottomNavigationBar: bottomNavigationBar(appState.selectedIndex, (index) {
         appState.setSelectedIndex(index);
+        setState(() {});
       }),
       backgroundColor: Colors.lightBlue[50], // 배경색 설정
-      body: ListView(
-        padding: const EdgeInsets.all(16.0),
-        children: <Widget>[
-          // 검색바
-          TextField(
-            decoration: InputDecoration(
-              hintText: '검색',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8.0),
-              ),
-              filled: true,
-              fillColor: Colors.grey[300],
+      body: _getSelectedPage(appState.selectedIndex),
+    );
+  }
+
+  Widget _getSelectedPage(int selectedIndex) {
+    switch (selectedIndex) {
+    case 0:
+      return _buildHomePage();
+      case 2:
+        return ProfilePage();
+      default:
+        return Center(child: Text('Page not found'));
+    }
+  }
+
+  Widget _buildHomePage() {
+    return ListView(
+      padding: const EdgeInsets.all(16.0),
+      children: <Widget>[
+        // 검색바
+        TextField(
+          decoration: InputDecoration(
+            hintText: '검색',
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8.0),
             ),
+            filled: true,
+            fillColor: Colors.grey[300],
           ),
-          const SizedBox(height: 16.0),
-          // 아이콘 버튼들
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: <Widget>[
-              Column(
-                children: <Widget>[
-                  CircleAvatar(
-                    radius: 30.0,
-                    backgroundColor: Colors.grey,
-                    child: IconButton(
-                      icon: const Icon(Icons.camera_alt),
-                      onPressed: _showImageSourceDialog,
-                    ),
+        ),
+        const SizedBox(height: 16.0),
+        // 아이콘 버튼들
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: <Widget>[
+            Column(
+              children: <Widget>[
+                CircleAvatar(
+                  radius: 30.0,
+                  backgroundColor: Colors.grey,
+                  child: IconButton(
+                    icon: const Icon(Icons.camera_alt),
+                    onPressed: _showImageSourceDialog,
                   ),
-                  const SizedBox(height: 8.0),
-                  const Text('스캔'),
-                ],
-              ),
-              Column(
-                children: <Widget>[
-                  CircleAvatar(
-                    radius: 30.0,
-                    backgroundColor: Colors.grey,
-                    child: IconButton(
-                      icon: const Icon(Icons.settings),
-                      onPressed: () {
-                        // 설정 버튼을 눌렀을 때 SettingsPage로 이동
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const SettingsPage(),
-                          ),
-                        );
-                      },
-                    ),
+                ),
+                const SizedBox(height: 8.0),
+                const Text('스캔'),
+              ],
+            ),
+            Column(
+              children: <Widget>[
+                CircleAvatar(
+                  radius: 30.0,
+                  backgroundColor: Colors.grey,
+                  child: IconButton(
+                    icon: const Icon(Icons.settings),
+                    onPressed: () {
+                      // 설정 버튼을 눌렀을 때 SettingsPage로 이동
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const SettingsPage(),
+                        ),
+                      );
+                    },
                   ),
-                  const SizedBox(height: 8.0),
-                  const Text('설정'),
-                ],
-              ),
-              Column(
-                children: <Widget>[
-                  CircleAvatar(
-                    radius: 30.0,
-                    backgroundColor: Colors.grey,
-                    child: IconButton(
-                      icon: const Icon(Icons.help_outline),
-                      onPressed: () {
-                        // 도움말 버튼을 눌렀을 때 HelpPage로 이동
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const HelpPage(),
-                          ),
-                        );
-                      },
-                    ),
+                ),
+                const SizedBox(height: 8.0),
+                const Text('설정'),
+              ],
+            ),
+            Column(
+              children: <Widget>[
+                CircleAvatar(
+                  radius: 30.0,
+                  backgroundColor: Colors.grey,
+                  child: IconButton(
+                    icon: const Icon(Icons.help_outline),
+                    onPressed: () {
+                      // 도움말 버튼을 눌렀을 때 HelpPage로 이동
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const HelpPage(),
+                        ),
+                      );
+                    },
                   ),
-                  const SizedBox(height: 8.0),
-                  const Text('도움말'),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 16.0),
-          // 최근 섹션
-          const Text(
-            '최근',
-            style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 16.0),
-          // 최근 아이템들
-          RecentItem(
-            title: 'Title',
-            date: '2024-03-29 21:03',
-          ),
-          const SizedBox(height: 16.0),
-          RecentItem(
-            title: 'Title',
-            date: '2024-03-29 21:03',
-          ),
-        ],
-      ),
+                ),
+                const SizedBox(height: 8.0),
+                const Text('도움말'),
+              ],
+            ),
+          ],
+        ),
+        const SizedBox(height: 16.0),
+        // 최근 섹션
+        const Text(
+          '최근',
+          style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 16.0),
+        // 최근 아이템들
+        RecentItem(
+          title: 'Title',
+          date: '2024-03-29 21:03',
+        ),
+        const SizedBox(height: 16.0),
+        RecentItem(
+          title: 'Title',
+          date: '2024-03-29 21:03',
+        ),
+      ],
     );
   }
 }
