@@ -16,3 +16,9 @@ subprojects {
 tasks.register("clean", Delete) {
     delete rootProject.buildDir
 }
+
+buildscript {
+    ext {
+        androidx_work_version = "2.7.1" // 최신 버전으로 업데이트
+    }
+}
