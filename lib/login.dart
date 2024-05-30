@@ -84,7 +84,7 @@ class _LoginPageState extends State<LoginPage> {
                     Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => MyHomePage(title: 'Flutter Demo Home Page'), // 홈 화면으로 이동
+                        builder: (context) => MyHomePage(title: ''), // 홈 화면으로 이동
                       ),
                     );
                   } else {
@@ -95,34 +95,6 @@ class _LoginPageState extends State<LoginPage> {
                 }
               },
               child: Text('Sign in with Google'),
-            ),
-            const SizedBox(height: 24.0),
-            ElevatedButton(
-              onPressed: () async {
-                try {
-                  UserCredential userCredential = await signInAnonymously();
-                  User? user = userCredential.user;
-                  print("Signed in with temporary account.");
-                  if (user != null) {
-                    appState.setUser(user); // 앱 상태에 사용자 설정
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => MyHomePage(title: 'Flutter Demo Home Page'), // 홈 화면으로 이동
-                      ),
-                    );
-                  }
-                } on FirebaseAuthException catch (e) {
-                  switch (e.code) {
-                    case "operation-not-allowed":
-                      print("Anonymous auth hasn't been enabled for this project.");
-                      break;
-                    default:
-                      print("Unknown error.");
-                  }
-                }
-              },
-              child: Text('Sign in with Guest'),
             ),
             const SizedBox(height: 12.0),
           ],
