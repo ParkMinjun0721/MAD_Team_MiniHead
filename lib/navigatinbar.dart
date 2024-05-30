@@ -9,15 +9,15 @@ Widget bottomNavigationBar(int currentIndex, Function(int) onTap) {
     items: const [
       BottomNavigationBarItem(
         label: 'Events',
-        icon: Icon(Icons.dashboard),
+        icon: Icon(Icons.home),
       ),
       BottomNavigationBarItem(
         label: 'Messages',
-        icon: Icon(Icons.notifications),
+        icon: Icon(Icons.folder_copy),
       ),
       BottomNavigationBarItem(
         label: 'Settings',
-        icon: Icon(Icons.settings),
+        icon: Icon(Icons.person_2_rounded),
       ),
     ],
   );

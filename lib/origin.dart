@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
-import 'summary.dart'; // summary.dart 파일 import
+import 'summary.dart';
+import 'package:flutter/services.dart';
 
 class OriginPage extends StatefulWidget {
   final File image;
@@ -36,6 +37,13 @@ class _OriginPageState extends State<OriginPage> {
         _recognizedText = '텍스트 인식에 실패했습니다: $e';
       });
     }
+  }
+
+  void _copyToClipboard(String text) {
+    Clipboard.setData(ClipboardData(text: text));
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('복사되었습니다')),
+    );
   }
 
   @override
@@ -78,9 +86,25 @@ class _OriginPageState extends State<OriginPage> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: <Widget>[
-                  _buildButton(context, '저장하기'),
-                  _buildButton(context, '복사하기'),
-                  _buildButton(context, '공유하기'),
+                  AnimatedIconButton(
+                    label: '수정하기',
+                    icon: Icons.edit,
+                    onTap: () {
+                      // 수정하기 기능 구현
+                    },
+                  ),
+                  AnimatedIconButton(
+                    label: '복사하기',
+                    icon: Icons.copy,
+                    onTap: () => _copyToClipboard(_recognizedText),
+                  ),
+                  AnimatedIconButton(
+                    label: '공유하기',
+                    icon: Icons.share,
+                    onTap: () {
+                      // 공유하기 기능 구현
+                    },
+                  ),
                 ],
               ),
             ],
@@ -101,24 +125,53 @@ class _OriginPageState extends State<OriginPage> {
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
+}
 
-  Widget _buildButton(BuildContext context, String label) {
-    return Container(
-      padding: const EdgeInsets.all(8.0),
-      decoration: BoxDecoration(
-        color: Colors.grey[300],
-        borderRadius: BorderRadius.circular(8.0),
-      ),
-      child: Column(
-        children: <Widget>[
-          Container(
-            width: 50,
-            height: 50,
-            color: Colors.grey,
-          ),
-          const SizedBox(height: 8.0),
-          Text(label),
-        ],
+class AnimatedIconButton extends StatefulWidget {
+  final String label;
+  final IconData icon;
+  final VoidCallback? onTap;
+
+  const AnimatedIconButton({
+    Key? key,
+    required this.label,
+    required this.icon,
+    this.onTap,
+  }) : super(key: key);
+
+  @override
+  _AnimatedIconButtonState createState() => _AnimatedIconButtonState();
+}
+
+class _AnimatedIconButtonState extends State<AnimatedIconButton> {
+  bool _isButtonPressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: (_) => setState(() => _isButtonPressed = true),
+      onTapUp: (_) => setState(() => _isButtonPressed = false),
+      onTapCancel: () => setState(() => _isButtonPressed = false),
+      onTap: widget.onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeInOut,
+        padding: const EdgeInsets.all(8.0),
+        decoration: BoxDecoration(
+          color: _isButtonPressed ? Colors.grey[400] : Colors.grey[300],
+          borderRadius: BorderRadius.circular(8.0),
+        ),
+        child: Column(
+          children: <Widget>[
+            AnimatedOpacity(
+              duration: const Duration(milliseconds: 200),
+              opacity: _isButtonPressed ? 0.5 : 1.0,
+              child: Icon(widget.icon, size: 50, color: Colors.grey),
+            ),
+            const SizedBox(height: 8.0),
+            Text(widget.label),
+          ],
+        ),
       ),
     );
   }

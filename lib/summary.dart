@@ -1,9 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class SummaryPage extends StatelessWidget {
   final String extractedText;
 
   const SummaryPage({Key? key, required this.extractedText}) : super(key: key);
+
+  void _copyToClipboard(BuildContext context, String text) {
+    Clipboard.setData(ClipboardData(text: text));
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('복사되었습니다')),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,9 +53,25 @@ class SummaryPage extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: <Widget>[
-                  _buildButton(context, '저장하기'),
-                  _buildButton(context, '복사하기'),
-                  _buildButton(context, '공유하기'),
+                  AnimatedIconButton(
+                    label: '수정하기',
+                    icon: Icons.edit,
+                    onTap: () {
+                      // 수정하기 기능 구현
+                    },
+                  ),
+                  AnimatedIconButton(
+                    label: '복사하기',
+                    icon: Icons.copy,
+                    onTap: () => _copyToClipboard(context, extractedText),
+                  ),
+                  AnimatedIconButton(
+                    label: '공유하기',
+                    icon: Icons.share,
+                    onTap: () {
+                      // 공유하기 기능 구현
+                    },
+                  ),
                 ],
               ),
             ],
@@ -63,24 +87,53 @@ class SummaryPage extends StatelessWidget {
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
+}
 
-  Widget _buildButton(BuildContext context, String label) {
-    return Container(
-      padding: const EdgeInsets.all(8.0),
-      decoration: BoxDecoration(
-        color: Colors.grey[300],
-        borderRadius: BorderRadius.circular(8.0),
-      ),
-      child: Column(
-        children: <Widget>[
-          Container(
-            width: 50,
-            height: 50,
-            color: Colors.grey,
-          ),
-          const SizedBox(height: 8.0),
-          Text(label),
-        ],
+class AnimatedIconButton extends StatefulWidget {
+  final String label;
+  final IconData icon;
+  final VoidCallback? onTap;
+
+  const AnimatedIconButton({
+    Key? key,
+    required this.label,
+    required this.icon,
+    this.onTap,
+  }) : super(key: key);
+
+  @override
+  _AnimatedIconButtonState createState() => _AnimatedIconButtonState();
+}
+
+class _AnimatedIconButtonState extends State<AnimatedIconButton> {
+  bool _isButtonPressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: (_) => setState(() => _isButtonPressed = true),
+      onTapUp: (_) => setState(() => _isButtonPressed = false),
+      onTapCancel: () => setState(() => _isButtonPressed = false),
+      onTap: widget.onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeInOut,
+        padding: const EdgeInsets.all(8.0),
+        decoration: BoxDecoration(
+          color: _isButtonPressed ? Colors.grey[400] : Colors.grey[300],
+          borderRadius: BorderRadius.circular(8.0),
+        ),
+        child: Column(
+          children: <Widget>[
+            AnimatedOpacity(
+              duration: const Duration(milliseconds: 200),
+              opacity: _isButtonPressed ? 0.5 : 1.0,
+              child: Icon(widget.icon, size: 50, color: Colors.grey),
+            ),
+            const SizedBox(height: 8.0),
+            Text(widget.label),
+          ],
+        ),
       ),
     );
   }
