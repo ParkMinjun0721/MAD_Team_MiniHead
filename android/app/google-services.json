@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "1080266264659-12uoqgstigavsasmb8jtc5cb8tt5or5b.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.minihead.mad_team_minihead",
+            "certificate_hash": "f52179145622119ba914272e5d093db0bbf87dc2"
+          }
+        },
+        {
           "client_id": "1080266264659-dosejsmhrts92v3n48st3n0mph2tm10o.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
