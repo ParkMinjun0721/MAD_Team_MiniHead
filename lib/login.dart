@@ -69,7 +69,7 @@ class _LoginPageState extends State<LoginPage> {
             Column(
               children: <Widget>[
                 const SizedBox(height: 16.0),
-                const Text('SHRINE'),
+                const Text('Team MiniHead'),
               ],
             ),
             const SizedBox(height: 120.0),
