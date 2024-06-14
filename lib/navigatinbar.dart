@@ -11,6 +11,7 @@ Widget bottomNavigationBar(int currentIndex, Function(int) onTap) {
         label: 'Events',
         icon: Icon(Icons.home),
       ),
+
       BottomNavigationBarItem(
         label: 'Messages',
         icon: Icon(Icons.folder_copy),
