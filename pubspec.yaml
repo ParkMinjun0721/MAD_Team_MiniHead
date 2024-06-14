@@ -10,10 +10,17 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
   intl: ^0.19.0
   google_sign_in: ^6.2.1
   google_sign_in_web: ^0.12.4
+
   image_picker: ^1.1.1
+  flutter_animate: ^4.5.0
+  flutter_local_notifications: ^13.0.0
+  shared_preferences: ^2.0.6
+  permission_handler: ^8.3.0
 
   cupertino_icons: ^1.0.6
   firebase_core: ^2.31.0
@@ -24,11 +31,20 @@ dependencies:
 
   google_ml_kit: ^0.7.0
   google_mlkit_text_recognition: ^0.3.0
+  dart_openai: ^5.1.0
+  envied: ^0.5.4+1
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^3.0.0
+  flutter_gen:
+  intl_translation: ^0.20.0
+  envied_generator: ^0.5.4+1
+  build_runner: ^2.4.11
 
 flutter:
   uses-material-design: true
+  generate: true
+  assets:
+    - lib/l10n/

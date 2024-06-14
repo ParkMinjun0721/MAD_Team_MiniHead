@@ -1,20 +1,18 @@
 import 'package:flutter/material.dart';
-import 'dart:io';
-import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
-import 'package:mad_team_minihead/sum_up_page.dart';
-import 'origin_edit.dart';  // 추가
 import 'package:flutter/services.dart';
+import 'openai_service.dart';
+import 'summary_page.dart';
 
-class OriginPage extends StatefulWidget {
-  final File image;
+class SumupPage extends StatefulWidget {
+  final String extractedText;
 
-  const OriginPage({Key? key, required this.image}) : super(key: key);
+  const SumupPage({Key? key, required this.extractedText}) : super(key: key);
 
   @override
-  _OriginPageState createState() => _OriginPageState();
+  _SumupPageState createState() => _SumupPageState();
 }
 
-class _OriginPageState extends State<OriginPage> {
+class _SumupPageState extends State<SumupPage> {
   String _recognizedText = '텍스트 인식을 진행 중입니다...';
 
   @override
@@ -25,13 +23,11 @@ class _OriginPageState extends State<OriginPage> {
 
   Future<void> _scanText() async {
     try {
-      final inputImage = InputImage.fromFile(widget.image);
-      final textRecognizer = TextRecognizer();
-      final RecognizedText recognizedText = await textRecognizer.processImage(inputImage);
-      await textRecognizer.close();
+      String initMessage = widget.extractedText;
+      String response = await OpenAIService().createModel(initMessage);
 
       setState(() {
-        _recognizedText = recognizedText.text;
+        _recognizedText = response;
       });
     } catch (e) {
       setState(() {
@@ -51,7 +47,7 @@ class _OriginPageState extends State<OriginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('원본'),
+        title: const Text('요약'),
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -60,7 +56,7 @@ class _OriginPageState extends State<OriginPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               const Text(
-                '원본',
+                '요약',
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16.0),
@@ -91,19 +87,7 @@ class _OriginPageState extends State<OriginPage> {
                     label: '수정하기',
                     icon: Icons.edit,
                     onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => OriginEditPage(
-                            initialText: _recognizedText,
-                            onSave: (String editedText) {
-                              setState(() {
-                                _recognizedText = editedText;
-                              });
-                            },
-                          ),
-                        ),
-                      );
+                      // 수정하기 기능 구현
                     },
                   ),
                   AnimatedIconButton(
@@ -129,7 +113,7 @@ class _OriginPageState extends State<OriginPage> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => SumupPage(extractedText: _recognizedText),
+              builder: (context) => SummaryPage(extractedText: _recognizedText),
             ),
           );
         },
