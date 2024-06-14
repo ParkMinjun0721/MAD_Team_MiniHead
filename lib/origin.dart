@@ -129,7 +129,10 @@ class _OriginPageState extends State<OriginPage> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => SumupPage(extractedText: _recognizedText),
+              builder: (context) => SumupPage(
+                extractedText: _recognizedText,
+                imageFile: widget.image, // Pass the image file to SumupPage
+              ),
             ),
           );
         },
@@ -139,6 +142,7 @@ class _OriginPageState extends State<OriginPage> {
     );
   }
 }
+
 
 class AnimatedIconButton extends StatefulWidget {
   final String label;
