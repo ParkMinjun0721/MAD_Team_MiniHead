@@ -8,15 +8,15 @@ Widget bottomNavigationBar(int currentIndex, Function(int) onTap) {
     showUnselectedLabels: false,
     items: const [
       BottomNavigationBarItem(
-        label: 'Events',
+        label: 'Home',
         icon: Icon(Icons.home),
       ),
       BottomNavigationBarItem(
-        label: 'Messages',
+        label: 'Folder',
         icon: Icon(Icons.folder_copy),
       ),
       BottomNavigationBarItem(
-        label: 'Settings',
+        label: 'Profile',
         icon: Icon(Icons.person_2_rounded),
       ),
     ],

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 import 'navigatinbar.dart';
 import 'app_state.dart';
@@ -7,6 +8,7 @@ import 'settings.dart'; // settings.dart 파일 import
 import 'help.dart'; // help.dart 파일 import
 import 'origin.dart'; // origin.dart 파일 import
 import 'profile.dart'; // profile.dart 파일 import
+import 'folder.dart'; // folder.dart 파일 import
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
@@ -53,7 +55,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     ),
                     const Text('카메라'),
                   ],
-                ),
+                ).animate().fadeIn(duration: 500.ms).scale(),
                 Column(
                   mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
@@ -77,7 +79,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     ),
                     const Text('갤러리'),
                   ],
-                ),
+                ).animate().fadeIn(duration: 500.ms).scale(),
               ],
             ),
           ),
@@ -102,12 +104,14 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Widget _getSelectedPage(int selectedIndex) {
     switch (selectedIndex) {
-    case 0:
-      return _buildHomePage();
+      case 0:
+        return _buildHomePage();
+      case 1:
+        return FolderPage(); // 폴더 페이지로 이동
       case 2:
         return ProfilePage();
       default:
-        return Center(child: Text('Page not found'));
+        return const Center(child: Text('Page not found'));
     }
   }
 
@@ -125,7 +129,7 @@ class _MyHomePageState extends State<MyHomePage> {
             filled: true,
             fillColor: Colors.grey[300],
           ),
-        ),
+        ).animate().fadeIn(duration: 500.ms),
         const SizedBox(height: 16.0),
         // 아이콘 버튼들
         Row(
@@ -144,7 +148,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 const SizedBox(height: 8.0),
                 const Text('스캔'),
               ],
-            ),
+            ).animate().fadeIn(duration: 500.ms).scale(),
             Column(
               children: <Widget>[
                 CircleAvatar(
@@ -166,7 +170,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 const SizedBox(height: 8.0),
                 const Text('설정'),
               ],
-            ),
+            ).animate().fadeIn(duration: 500.ms).scale(),
             Column(
               children: <Widget>[
                 CircleAvatar(
@@ -188,7 +192,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 const SizedBox(height: 8.0),
                 const Text('도움말'),
               ],
-            ),
+            ).animate().fadeIn(duration: 500.ms).scale(),
           ],
         ),
         const SizedBox(height: 16.0),
@@ -196,18 +200,18 @@ class _MyHomePageState extends State<MyHomePage> {
         const Text(
           '최근',
           style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
-        ),
+        ).animate().fadeIn(duration: 500.ms),
         const SizedBox(height: 16.0),
         // 최근 아이템들
         RecentItem(
           title: 'Title',
           date: '2024-03-29 21:03',
-        ),
+        ).animate().fadeIn(duration: 500.ms).slide(),
         const SizedBox(height: 16.0),
         RecentItem(
           title: 'Title',
           date: '2024-03-29 21:03',
-        ),
+        ).animate().fadeIn(duration: 500.ms).slide(),
       ],
     );
   }

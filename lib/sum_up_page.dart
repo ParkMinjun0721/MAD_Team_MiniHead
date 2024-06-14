@@ -73,12 +73,19 @@ class _SumupPageState extends State<SumupPage> {
           String imageUrl = await storageRef.getDownloadURL();
 
           // Save data to Firestore with the chosen folder name
-          await FirebaseFirestore.instance.collection(_folderName).add({
+
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(FirebaseAuth.instance.currentUser!.uid)
+              .collection(_folderName)
+              .add({
             'extractedText': widget.extractedText,
             'imageUrl': imageUrl,
             'timestamp': DateTime.now().millisecondsSinceEpoch,
             'userId': FirebaseAuth.instance.currentUser!.uid,
           });
+
+
 
           Navigator.pop(context); // Navigate back after saving
         } catch (e) {
