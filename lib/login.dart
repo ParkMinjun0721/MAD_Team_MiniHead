@@ -31,27 +31,27 @@ class _LoginPageState extends State<LoginPage> {
     // Firestore에 사용자 정보 저장
     User? user = userCredential.user;
     if (user != null) {
-      await _firestore.collection('users').doc(user.uid).set({
-        'name': user.displayName,
-        'email': user.email,
-        'uid': user.uid,
-        'status_message': 'I promise to take the test honestly before GOD.',
-      }, SetOptions(merge: true)); // merge: true로 설정하면 기존 데이터가 덮어쓰여지지 않습니다.
-    }
-    return userCredential;
-  }
+      DocumentReference userDoc = _firestore.collection('users').doc(user.uid);
+      DocumentSnapshot docSnapshot = await userDoc.get();
 
-  // 익명 로그인
-  Future<UserCredential> signInAnonymously() async {
-    UserCredential userCredential = await FirebaseAuth.instance.signInAnonymously();
-
-    // Firestore에 사용자 정보 저장
-    User? user = userCredential.user;
-    if (user != null) {
-      await _firestore.collection('users').doc(user.uid).set({
-        'uid': user.uid,
-        'status_message': 'I promise to take the test honestly before GOD.',
-      }, SetOptions(merge: true));
+      if (!docSnapshot.exists) {
+        // 문서가 존재하지 않으면 새로 생성
+        await userDoc.set({
+          'name': user.displayName,
+          'email': user.email,
+          'uid': user.uid,
+          'status_message': 'I promise to take the test honestly before GOD.',
+        }, SetOptions(merge: true));
+      } else {
+        // 문서가 존재하면 기존 상태 메시지를 가져옴
+        String statusMessage = docSnapshot['status_message'] ?? 'I promise to take the test honestly before GOD.';
+        await userDoc.set({
+          'name': user.displayName,
+          'email': user.email,
+          'uid': user.uid,
+          'status_message': statusMessage,
+        }, SetOptions(merge: true));
+      }
     }
     return userCredential;
   }

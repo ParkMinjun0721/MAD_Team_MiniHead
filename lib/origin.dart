@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:mad_team_minihead/sum_up_page.dart';
-import 'summary.dart';
+import 'origin_edit.dart';  // 추가
 import 'package:flutter/services.dart';
 
 class OriginPage extends StatefulWidget {
@@ -91,7 +91,19 @@ class _OriginPageState extends State<OriginPage> {
                     label: '수정하기',
                     icon: Icons.edit,
                     onTap: () {
-                      // 수정하기 기능 구현
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => OriginEditPage(
+                            initialText: _recognizedText,
+                            onSave: (String editedText) {
+                              setState(() {
+                                _recognizedText = editedText;
+                              });
+                            },
+                          ),
+                        ),
+                      );
                     },
                   ),
                   AnimatedIconButton(
