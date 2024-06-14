@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
-import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
-import 'package:mad_team_minihead/sum_up_page.dart';
-import 'summary.dart';
 import 'package:flutter/services.dart';
+import 'package:mad_team_minihead/sum_up_page.dart';
+import 'package:google_ml_kit/google_ml_kit.dart'; // Import Google ML Kit
+import 'summary.dart';
 
 class OriginPage extends StatefulWidget {
   final File image;
@@ -16,18 +16,24 @@ class OriginPage extends StatefulWidget {
 
 class _OriginPageState extends State<OriginPage> {
   String _recognizedText = '텍스트 인식을 진행 중입니다...';
+  InputImage? _inputImage;
 
   @override
   void initState() {
     super.initState();
-    _scanText();
+    _initializeImage();
   }
 
-  Future<void> _scanText() async {
+  void _initializeImage() {
+    _inputImage = InputImage.fromFilePath(widget.image.path);
+    _scanText(_inputImage!);
+  }
+
+  Future<void> _scanText(InputImage inputImage) async {
     try {
-      final inputImage = InputImage.fromFile(widget.image);
-      final textRecognizer = TextRecognizer();
-      final RecognizedText recognizedText = await textRecognizer.processImage(inputImage);
+      final textRecognizer = GoogleMlKit.vision.textDetector();
+      final RecognisedText recognizedText =
+          await textRecognizer.processImage(inputImage);
       await textRecognizer.close();
 
       setState(() {
@@ -117,7 +123,10 @@ class _OriginPageState extends State<OriginPage> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => SumupPage(extractedText: _recognizedText),
+              builder: (context) => SumupPage(
+                extractedText: _recognizedText,
+                imageFile: widget.image, // Pass the image file to SumupPage
+              ),
             ),
           );
         },
