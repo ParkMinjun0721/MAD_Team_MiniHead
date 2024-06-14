@@ -38,13 +38,10 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^3.0.0
-<<<<<<< HEAD
   flutter_gen:
   intl_translation: ^0.20.0
-=======
   envied_generator: ^0.5.4+1
   build_runner: ^2.4.11
->>>>>>> 2a7ed18bbf253d24c03d92a835dc477c139e60d7
 
 flutter:
   uses-material-design: true
