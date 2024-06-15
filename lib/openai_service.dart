@@ -9,7 +9,7 @@ class OpenAIService {
     final systemMessage = OpenAIChatCompletionChoiceMessageModel(
       content: [
         OpenAIChatCompletionChoiceMessageContentItemModel.text(
-          "입력되는 텍스트의 언어에 맞춰서 해당 언어로 요약해줘. 대신 미사여구 없이 딱 내용만 요약해줘.",
+          "입력되는 텍스트의 언어에 맞춰서 해당 언어로 요약해줘. 만약에 대화가 질문 형식으로 들어오면 질문에도 답을 해줘!",
         ),
       ],
       role: OpenAIChatMessageRole.system,

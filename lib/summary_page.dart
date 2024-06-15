@@ -51,7 +51,7 @@ class _SummaryPageState extends State<SummaryPage> {
     });
 
     OpenAIService openAIService = OpenAIService();
-    String response = await openAIService.createModel(_controller.text);
+    String response = await openAIService.createModel(_buildFullChatContext(_messages));
 
     setState(() {
       _messages.add({'role': 'assistant', 'content': response});
@@ -62,6 +62,12 @@ class _SummaryPageState extends State<SummaryPage> {
 
     // Update AppState with the new message and response
     Provider.of<AppState>(context, listen: false).setSummaryText(response);
+  }
+
+  String _buildFullChatContext(List<Map<String, String>> messages) {
+    return messages.map((msg) {
+      return "${msg['role']}: ${msg['content']}";
+    }).join('\n');
   }
 
   @override
