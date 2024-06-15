@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'package:provider/provider.dart';
 import 'FolderContentsPage.dart';
 import 'app_state.dart';
@@ -27,16 +28,14 @@ class _FolderPageState extends State<FolderPage> {
     try {
       User? user = _auth.currentUser;
       if (user != null) {
-        QuerySnapshot snapshot = await _firestore
-            .collection('users')
-            .doc(user.uid)
-            .collection('Folder')
-            .get();
-        List<String> folders = snapshot.docs.map((doc) => doc['folder'] as String).toList();
-        setState(() {
-          _folders = folders;
-          _isLoading = false;
-        });
+        DocumentSnapshot userDocSnapshot = await _firestore.collection('users').doc(user.uid).get();
+        if (userDocSnapshot.exists) {
+          List<String> collections = List<String>.from(userDocSnapshot['collections']);
+          setState(() {
+            _folders = collections;
+            _isLoading = false;
+          });
+        }
       }
     } catch (e) {
       print('Error fetching folders: $e');
@@ -46,32 +45,37 @@ class _FolderPageState extends State<FolderPage> {
     }
   }
 
-  void _deleteFolder(String folderName) async {
+  Future<void> _deleteFolder(String folderName) async {
     try {
       User? user = _auth.currentUser;
       if (user != null) {
-        // Delete all documents in the folder
-        QuerySnapshot snapshot = await _firestore
-            .collection('users')
-            .doc(user.uid)
-            .collection(folderName)
-            .get();
-        for (DocumentSnapshot doc in snapshot.docs) {
+        DocumentReference userDocRef = _firestore.collection('users').doc(user.uid);
+
+        // Delete all documents in the folder in Firestore
+        QuerySnapshot folderSnapshot = await userDocRef.collection(folderName).get();
+        for (QueryDocumentSnapshot doc in folderSnapshot.docs) {
           await doc.reference.delete();
         }
 
-        // Delete the folder document
-        await _firestore
-            .collection('users')
-            .doc(user.uid)
-            .collection('Folder')
-            .where('folder', isEqualTo: folderName)
-            .get()
-            .then((snapshot) {
-          for (DocumentSnapshot ds in snapshot.docs) {
-            ds.reference.delete();
-          }
-        });
+        // Delete folder document
+        QuerySnapshot folderDocSnapshot = await userDocRef.collection('Folder').where('folder', isEqualTo: folderName).get();
+        for (DocumentSnapshot ds in folderDocSnapshot.docs) {
+          await ds.reference.delete();
+        }
+
+        // Delete files in Firebase Storage
+        firebase_storage.ListResult result = await firebase_storage.FirebaseStorage.instance.ref().child(folderName).listAll();
+        for (firebase_storage.Reference ref in result.items) {
+          await ref.delete();
+        }
+
+        // Update the collections array in user document
+        DocumentSnapshot userDocSnapshot = await userDocRef.get();
+        if (userDocSnapshot.exists) {
+          List<String> collections = List<String>.from(userDocSnapshot['collections']);
+          collections.remove(folderName);
+          await userDocRef.update({'collections': collections});
+        }
 
         setState(() {
           _folders.remove(folderName);
@@ -105,24 +109,25 @@ class _FolderPageState extends State<FolderPage> {
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                IconButton(
-                  icon: Icon(Icons.edit),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => EditFolderPage(
-                          initialFolderName: _folders[index],
-                          onSave: (String editedFolderName) {
-                            setState(() {
-                              _folders[index] = editedFolderName;
-                            });
-                          },
-                        ),
-                      ),
-                    );
-                  },
-                ),
+                // edit 기능은 나중에 구현하겠음
+                // IconButton(
+                //   icon: Icon(Icons.edit),
+                //   onPressed: () {
+                //     Navigator.push(
+                //       context,
+                //       MaterialPageRoute(
+                //         builder: (context) => EditFolderPage(
+                //           initialFolderName: _folders[index],
+                //           onSave: (String editedFolderName) {
+                //             setState(() {
+                //               _folders[index] = editedFolderName;
+                //             });
+                //           },
+                //         ),
+                //       ),
+                //     );
+                //   },
+                // ),
                 IconButton(
                   icon: Icon(Icons.delete),
                   onPressed: () {

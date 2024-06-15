@@ -341,17 +341,16 @@ class _SumupPageState extends State<SumupPage> {
                   ),
                 ],
               ),
-              const SizedBox(height: 16.0),
-              Center(
-                child: ElevatedButton(
-                  onPressed: _saveData,
-                  child: const Text('저장하기'),
-                ),
-              ),
             ],
           ),
         ),
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _saveData,
+        child: const Icon(Icons.save),
+        backgroundColor: Colors.blue,
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat, // 위치를 중앙 하단으로 설정
     );
   }
 }

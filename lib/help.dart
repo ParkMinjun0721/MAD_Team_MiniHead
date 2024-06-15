@@ -1,7 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 
 class HelpPage extends StatelessWidget {
   const HelpPage({Key? key}) : super(key: key);
+
+  Future<String> _loadImage(String path) async {
+    try {
+      firebase_storage.Reference ref = firebase_storage.FirebaseStorage.instance.ref().child(path);
+      String url = await ref.getDownloadURL();
+      return url;
+    } catch (e) {
+      print('Error loading image: $e');
+      return '';
+    }
+  }
 
   void _showHelpDialog(BuildContext context, String title, List<HelpPageItem> pages) {
     showDialog(
@@ -27,6 +39,15 @@ class HelpPage extends StatelessWidget {
     );
   }
 
+  Future<List<HelpPageItem>> _loadHelpItems(List<HelpPageItem> items) async {
+    List<HelpPageItem> loadedItems = [];
+    for (var item in items) {
+      String imageUrl = await _loadImage(item.imagePath);
+      loadedItems.add(HelpPageItem(item.description, imageUrl));
+    }
+    return loadedItems;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -36,41 +57,103 @@ class HelpPage extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16.0),
         children: <Widget>[
-          _buildHelpListTile(
-            context,
-            '로그아웃 방법',
-            [
-              HelpPageItem('프로필 페이지 상단의 로그아웃 버튼을 눌러 로그아웃할 수 있습니다.'),
-              HelpPageItem('로그아웃 후에는 로그인 페이지로 이동합니다.'),
-            ],
+          FutureBuilder<List<HelpPageItem>>(
+            future: _loadHelpItems([
+              HelpPageItem('프로필 페이지 상단의 로그아웃 버튼을 눌러 로그아웃할 수 있습니다.', 'logout1.png'),
+              HelpPageItem('또한 설정의 하단에 로그아웃 버튼이 있습니다.', 'logout2.png'),
+              HelpPageItem('로그아웃 후에는 로그인 페이지로 이동합니다.', 'logout3.png'),
+            ]),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return CircularProgressIndicator();
+              } else if (snapshot.hasError) {
+                return Text('Error loading help items');
+              } else {
+                return Column(
+                  children: [
+                    _buildHelpListTile(
+                      context,
+                      '로그아웃 방법',
+                      snapshot.data!,
+                    ),
+                    const Divider(),
+                  ],
+                );
+              }
+            },
           ),
-          const Divider(),
-          _buildHelpListTile(
-            context,
-            '스캔 방법',
-            [
-              HelpPageItem('스캔 버튼을 눌러 카메라를 실행합니다.'),
-              HelpPageItem('카메라를 사용하여 이미지를 찍습니다.'),
-              HelpPageItem('갤러리에서 이미지를 선택할 수도 있습니다.'),
-            ],
+          FutureBuilder<List<HelpPageItem>>(
+            future: _loadHelpItems([
+              HelpPageItem('스캔 버튼을 눌러 카메라를 실행합니다.', 'scan1.png'),
+              HelpPageItem('카메라를 사용하여 이미지를 찍습니다.', 'scan2.png'),
+              HelpPageItem('갤러리에서 이미지를 선택할 수도 있습니다.', 'scan3.png'),
+            ]),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return CircularProgressIndicator();
+              } else if (snapshot.hasError) {
+                return Text('Error loading help items');
+              } else {
+                return Column(
+                  children: [
+                    _buildHelpListTile(
+                      context,
+                      '스캔 방법',
+                      snapshot.data!,
+                    ),
+                    const Divider(),
+                  ],
+                );
+              }
+            },
           ),
-          const Divider(),
-          _buildHelpListTile(
-            context,
-            '공유 방법',
-            [
-              HelpPageItem('스캔한 텍스트를 선택합니다.'),
-              HelpPageItem('공유하기 버튼을 눌러 다른 앱으로 텍스트를 공유합니다.'),
-            ],
+          FutureBuilder<List<HelpPageItem>>(
+            future: _loadHelpItems([
+              HelpPageItem('설정 버튼에서 테마 설정을 클릭합니다.', 'theme1.png'),
+              HelpPageItem('라이트 모드와, 다크 모드를 설정 할 수 있습니다.', 'theme2.png'),
+            ]),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return CircularProgressIndicator();
+              } else if (snapshot.hasError) {
+                return Text('Error loading help items');
+              } else {
+                return Column(
+                  children: [
+                    _buildHelpListTile(
+                      context,
+                      '앱 테마 변경',
+                      snapshot.data!,
+                    ),
+                    const Divider(),
+                  ],
+                );
+              }
+            },
           ),
-          const Divider(),
-          _buildHelpListTile(
-            context,
-            '기타 문의사항',
-            [
-              HelpPageItem('앱 사용 중 문제가 발생하면 고객센터에 문의해 주세요.'),
-              HelpPageItem('고객센터는 앱 설정 메뉴에서 찾을 수 있습니다.'),
-            ],
+          FutureBuilder<List<HelpPageItem>>(
+            future: _loadHelpItems([
+              HelpPageItem('요약 페이지에서 대화하기 버튼을 누릅니다.', 'chat1.png'),
+              HelpPageItem('AI와의 대화를 통해 사용자에 니즈에 맞는 답변을 받을 수 있습니다.', 'chat2.png'),
+            ]),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return CircularProgressIndicator();
+              } else if (snapshot.hasError) {
+                return Text('Error loading help items');
+              } else {
+                return Column(
+                  children: [
+                    _buildHelpListTile(
+                      context,
+                      'AI와의 대화 기능',
+                      snapshot.data!,
+                    ),
+                    const Divider(),
+                  ],
+                );
+              }
+            },
           ),
         ],
       ),
@@ -93,8 +176,9 @@ class HelpPage extends StatelessWidget {
 
 class HelpPageItem {
   final String description;
+  final String imagePath; // 이미지 경로 추가
 
-  HelpPageItem(this.description);
+  HelpPageItem(this.description, this.imagePath);
 }
 
 class HelpDialogContent extends StatefulWidget {
@@ -136,24 +220,39 @@ class _HelpDialogContentState extends State<HelpDialogContent> {
             controller: _pageController,
             itemCount: widget.pages.length,
             itemBuilder: (context, index) {
-              return Column(
-                children: <Widget>[
-                  Container(
-                    height: 150,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[300], // Placeholder for image
-                      borderRadius: BorderRadius.circular(8.0),
+              return GestureDetector(
+                onTap: () {
+                  Navigator.push(context, MaterialPageRoute(
+                    builder: (context) => HeroImagePage(
+                      tag: widget.pages[index].imagePath,
+                      imageUrl: widget.pages[index].imagePath,
                     ),
-                    child: Center(
-                      child: Icon(Icons.image, size: 100, color: Colors.grey[600]), // Placeholder icon
+                  ));
+                },
+                child: Column(
+                  children: <Widget>[
+                    Hero(
+                      tag: widget.pages[index].imagePath,
+                      child: Container(
+                        height: 150,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[300], // Placeholder for image
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
+                        child: widget.pages[index].imagePath.isNotEmpty
+                            ? Image.network(widget.pages[index].imagePath, fit: BoxFit.cover)
+                            : Center(
+                          child: Icon(Icons.image, size: 100, color: Colors.grey[600]), // Placeholder icon
+                        ),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    widget.pages[index].description,
-                    style: TextStyle(fontSize: 18),
-                  ),
-                ],
+                    const SizedBox(height: 16),
+                    Text(
+                      widget.pages[index].description,
+                      style: TextStyle(fontSize: 18),
+                    ),
+                  ],
+                ),
               );
             },
           ),
@@ -164,6 +263,30 @@ class _HelpDialogContentState extends State<HelpDialogContent> {
           style: TextStyle(fontSize: 16, color: Colors.grey),
         ),
       ],
+    );
+  }
+}
+
+class HeroImagePage extends StatelessWidget {
+  final String tag;
+  final String imageUrl;
+
+  const HeroImagePage({Key? key, required this.tag, required this.imageUrl}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: GestureDetector(
+        onTap: () {
+          Navigator.pop(context);
+        },
+        child: Center(
+          child: Hero(
+            tag: tag,
+            child: Image.network(imageUrl),
+          ),
+        ),
+      ),
     );
   }
 }

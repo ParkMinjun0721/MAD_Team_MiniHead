@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'navigatinbar.dart';
 import 'app_state.dart';
 import 'addimage.dart'; // addimage.dart 파일 import
@@ -9,6 +12,7 @@ import 'help.dart'; // help.dart 파일 import
 import 'origin.dart'; // origin.dart 파일 import
 import 'profile.dart'; // profile.dart 파일 import
 import 'folder.dart'; // folder.dart 파일 import
+import 'FolderContentsPage.dart'; // FolderContentsPage import
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
@@ -21,6 +25,63 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   final AddImage _addImage = AddImage(); // AddImage 인스턴스 생성
+  List<Map<String, dynamic>> _recentItems = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchRecentItems();
+  }
+
+  Future<void> _fetchRecentItems() async {
+    try {
+      User? user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        // Fetch all folders
+        QuerySnapshot folderSnapshot = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .collection('Folder')
+            .get();
+
+        List<Map<String, dynamic>> allItems = [];
+
+        for (var folderDoc in folderSnapshot.docs) {
+          String folderName = folderDoc['folder'];
+
+          // Fetch items from each folder
+          QuerySnapshot itemSnapshot = await FirebaseFirestore.instance
+              .collection('users')
+              .doc(user.uid)
+              .collection(folderName)
+              .orderBy('timestamp', descending: true)
+              .limit(2)
+              .get();
+
+          for (var itemDoc in itemSnapshot.docs) {
+            Map<String, dynamic> itemData = itemDoc.data() as Map<String, dynamic>;
+            itemData['folder'] = folderName;  // Add folder name to item data
+            itemData['id'] = itemDoc.id;  // Add document ID to item data
+            allItems.add(itemData);
+          }
+        }
+
+        // Sort all items by timestamp and get the top 2 recent items
+        allItems.sort((a, b) => b['timestamp'].compareTo(a['timestamp']));
+        _recentItems = allItems.take(2).toList();
+
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      print('Error fetching recent items: $e');
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
 
   void _showImageSourceDialog() {
     showDialog(
@@ -203,15 +264,26 @@ class _MyHomePageState extends State<MyHomePage> {
         ).animate().fadeIn(duration: 500.ms),
         const SizedBox(height: 16.0),
         // 최근 아이템들
-        RecentItem(
-          title: 'Title',
-          date: '2024-03-29 21:03',
-        ).animate().fadeIn(duration: 500.ms).slide(),
-        const SizedBox(height: 16.0),
-        RecentItem(
-          title: 'Title',
-          date: '2024-03-29 21:03',
-        ).animate().fadeIn(duration: 500.ms).slide(),
+        _isLoading
+            ? Center(child: CircularProgressIndicator())
+            : Column(
+          children: _recentItems.map((item) {
+            final String title = item['fileName'] ?? 'No Title';
+            final int timestamp = item['timestamp'] ?? 0;
+            final String date = DateTime.fromMillisecondsSinceEpoch(timestamp).toString();
+            final String imageUrl = item['imageUrl'] ?? '';
+            final String folderName = item['folder'] ?? '';
+            final String itemId = item['id'] ?? '';
+
+            return RecentItem(
+              title: title,
+              date: date,
+              imageUrl: imageUrl,
+              folderName: folderName,
+              itemId: itemId,
+            ).animate().fadeIn(duration: 500.ms).slide();
+          }).toList(),
+        ),
       ],
     );
   }
@@ -220,25 +292,32 @@ class _MyHomePageState extends State<MyHomePage> {
 class RecentItem extends StatelessWidget {
   final String title;
   final String date;
+  final String imageUrl;
+  final String folderName;
+  final String itemId;
 
   const RecentItem({
     Key? key,
     required this.title,
     required this.date,
+    required this.imageUrl,
+    required this.folderName,
+    required this.itemId,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Container(
+      margin: const EdgeInsets.symmetric(vertical: 8.0), // Add vertical margin between items
       padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(8.0),
+        borderRadius: BorderRadius.circular(12.0), // Increase border radius
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.5),
-            spreadRadius: 2,
-            blurRadius: 5,
+            color: Colors.grey.withOpacity(0.3), // Lighter shadow
+            spreadRadius: 3,
+            blurRadius: 7,
             offset: const Offset(0, 3),
           ),
         ],
@@ -249,52 +328,218 @@ class RecentItem extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              Container(
+              imageUrl.isNotEmpty
+                  ? Hero(
+                tag: imageUrl,
+                child: GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ImageDetailPage(imageUrl: imageUrl),
+                      ),
+                    );
+                  },
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8.0), // Add border radius to image
+                    child: Image.network(
+                      imageUrl,
+                      width: 50,
+                      height: 50,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
+              )
+                  : Container(
                 width: 50,
                 height: 50,
-                color: Colors.grey,
+                decoration: BoxDecoration(
+                  color: Colors.grey,
+                  borderRadius: BorderRadius.circular(8.0), // Add border radius to placeholder
+                ),
               ),
               const SizedBox(width: 16.0),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 16.0,
-                      fontWeight: FontWeight.bold,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 16.0,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blueAccent, // Change text color
+                      ),
+                      overflow: TextOverflow.ellipsis, // Add ellipsis for long text
                     ),
-                  ),
-                  Text(
-                    date,
-                    style: const TextStyle(
-                      fontSize: 12.0,
-                      color: Colors.grey,
+                    const SizedBox(height: 4.0), // Add space between title and date
+                    Text(
+                      date,
+                      style: const TextStyle(
+                        fontSize: 12.0,
+                        color: Colors.grey,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ],
           ),
           const SizedBox(height: 16.0),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: <Widget>[
-              ElevatedButton(
-                onPressed: () {},
-                child: const Text('공유'),
-              ),
-              ElevatedButton(
-                onPressed: () {},
-                child: const Text('원본 보기'),
-              ),
-              ElevatedButton(
-                onPressed: () {},
-                child: const Text('요약본 보기'),
-              ),
-            ],
+          Center(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8.0), // Add border radius to button
+                    ),
+                  ),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => FolderContentsPage(folderName: folderName),
+                      ),
+                    );
+                  },
+                  child: const Text('파일 위치로 이동'),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8.0), // Add border radius to button
+                    ),
+                  ),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => FileDetailPage(
+                          folderName: folderName,
+                          itemId: itemId,
+                        ),
+                      ),
+                    );
+                  },
+                  child: const Text('자세히 보기'),
+                ),
+              ],
+            ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class ImageDetailPage extends StatelessWidget {
+  final String imageUrl;
+
+  const ImageDetailPage({Key? key, required this.imageUrl}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Image Detail'),
+      ),
+      body: Center(
+        child: Hero(
+          tag: imageUrl,
+          child: Image.network(imageUrl),
+        ),
+      ),
+    );
+  }
+}
+
+class FileDetailPage extends StatelessWidget {
+  final String folderName;
+  final String itemId;
+
+  const FileDetailPage({Key? key, required this.folderName, required this.itemId}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final User? user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) {
+      return Scaffold(
+        appBar: AppBar(
+          title: Text('File Detail'),
+        ),
+        body: Center(
+          child: Text('User not logged in'),
+        ),
+      );
+    }
+
+    final DocumentReference fileRef = FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .collection(folderName)
+        .doc(itemId);
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('File Detail'),
+      ),
+      body: FutureBuilder<DocumentSnapshot>(
+        future: fileRef.get(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          } else if (!snapshot.hasData || !snapshot.data!.exists) {
+            return Center(child: Text('File not found'));
+          } else {
+            final Map<String, dynamic> data = snapshot.data!.data() as Map<String, dynamic>;
+            final String title = data['fileName'] ?? 'No Title';
+            final String recognizedText = data['recognizedText'] ?? 'No Recognized Text';
+            final String extractedText = data['extractedText'] ?? 'No Extracted Text';
+            final String imageUrl = data['imageUrl'] ?? '';
+
+            return Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    imageUrl.isNotEmpty
+                        ? Image.network(imageUrl, fit: BoxFit.cover)
+                        : Icon(Icons.image, size: 100, color: Colors.grey),
+                    const SizedBox(height: 16.0),
+                    Text(
+                      'Title',
+                      style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 8.0),
+                    Text(title, style: TextStyle(fontSize: 16)),
+                    const SizedBox(height: 16.0),
+                    Text(
+                      'Extracted Text',
+                      style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 8.0),
+                    Text(extractedText, style: TextStyle(fontSize: 16)),
+                    const SizedBox(height: 16.0),
+                    Text(
+                      'Recognized Text',
+                      style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 8.0),
+                    Text(recognizedText, style: TextStyle(fontSize: 16)),
+                  ],
+                ),
+              ),
+            );
+          }
+        },
       ),
     );
   }

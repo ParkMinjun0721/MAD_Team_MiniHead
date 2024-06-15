@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'app_state.dart';
 
@@ -166,6 +167,13 @@ class _FileDetailPageState extends State<FileDetailPage> {
     });
   }
 
+  void _copyToClipboard(String text) {
+    Clipboard.setData(ClipboardData(text: text));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('복사되었습니다')),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -218,16 +226,34 @@ class _FileDetailPageState extends State<FileDetailPage> {
               )
                   : Text('No image available'),
               SizedBox(height: 16),
-              Text(
-                'Extracted Text:',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Extracted Text:',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.copy),
+                    onPressed: () => _copyToClipboard(fileData['extractedText'] ?? 'No text available'),
+                  ),
+                ],
               ),
               SizedBox(height: 8),
               Text(fileData['extractedText'] ?? 'No text available'),
               SizedBox(height: 16),
-              Text(
-                'Recognized Text:',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Recognized Text:',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.copy),
+                    onPressed: () => _copyToClipboard(fileData['recognizedText'] ?? 'No recognized text available'),
+                  ),
+                ],
               ),
               SizedBox(height: 8),
               Text(fileData['recognizedText'] ?? 'No recognized text available'),
@@ -325,6 +351,13 @@ class _EditFilePageState extends State<EditFilePage> {
     }
   }
 
+  void _copyToClipboard(String text) {
+    Clipboard.setData(ClipboardData(text: text));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('복사되었습니다')),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -347,12 +380,38 @@ class _EditFilePageState extends State<EditFilePage> {
                 decoration: InputDecoration(labelText: '파일명'),
               ),
               SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Extracted Text:',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.copy),
+                    onPressed: () => _copyToClipboard(_extractedTextController.text),
+                  ),
+                ],
+              ),
               TextField(
                 controller: _extractedTextController,
                 maxLines: null,
                 decoration: InputDecoration(labelText: '추출된 텍스트'),
               ),
               SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Recognized Text:',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.copy),
+                    onPressed: () => _copyToClipboard(_recognizedTextController.text),
+                  ),
+                ],
+              ),
               TextField(
                 controller: _recognizedTextController,
                 maxLines: null,
