@@ -46,7 +46,7 @@ class _OriginEditPageState extends State<OriginEditPage> {
           ),
         ],
       ),
-      body: Padding(
+      body: SingleChildScrollView( // Added SingleChildScrollView
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: <Widget>[

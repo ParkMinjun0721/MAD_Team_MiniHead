@@ -6,7 +6,11 @@ import 'package:flutter/services.dart';
 import 'dart:io';
 
 import 'summary_page.dart';
+import 'summary_edit.dart';
 import 'package:mad_team_minihead/openai_service.dart';
+import 'package:provider/provider.dart';
+import 'app_state.dart';
+import 'home.dart';  // home.dart 파일 import
 
 class SumupPage extends StatefulWidget {
   final String extractedText;
@@ -19,7 +23,6 @@ class SumupPage extends StatefulWidget {
 }
 
 class _SumupPageState extends State<SumupPage> {
-  String _recognizedText = '텍스트 인식을 진행 중입니다...';
   final _formKey = GlobalKey<FormState>();
   String _folderName = ''; // Variable to store folder name
   String _fileName = ''; // Variable to store file name
@@ -38,13 +41,9 @@ class _SumupPageState extends State<SumupPage> {
       String initMessage = widget.extractedText;
       String response = await OpenAIService().createModel(initMessage);
 
-      setState(() {
-        _recognizedText = response;
-      });
+      Provider.of<AppState>(context, listen: false).setSummaryText(response);
     } catch (e) {
-      setState(() {
-        _recognizedText = '텍스트 인식에 실패했습니다: $e';
-      });
+      Provider.of<AppState>(context, listen: false).setSummaryText('텍스트 인식에 실패했습니다: $e');
     }
   }
 
@@ -103,14 +102,19 @@ class _SumupPageState extends State<SumupPage> {
             // Save data to Firestore with the chosen folder name
             await addCollectionWithMetadata(FirebaseAuth.instance.currentUser!.uid, _folderName, {
               'extractedText': widget.extractedText,
-              'recognizedText': _recognizedText, // Add recognizedText
+              'recognizedText': Provider.of<AppState>(context, listen: false).summaryText, // Add recognizedText
               'imageUrl': imageUrl,
               'timestamp': DateTime.now().millisecondsSinceEpoch,
               'userId': FirebaseAuth.instance.currentUser!.uid,
               'fileName': _fileName, // Add fileName
             });
 
-            Navigator.pop(context); // Navigate back after saving
+            // Navigate back to home page after saving
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (context) => MyHomePage(title: 'Home')),
+                  (Route<dynamic> route) => false,
+            );
           } catch (e) {
             print('Data save error: $e');
             // Handle the error, e.g., show a message to the user
@@ -118,6 +122,20 @@ class _SumupPageState extends State<SumupPage> {
         }
       }
     }
+  }
+
+  Future<bool> _isFolderNameUnique(String folderName) async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      QuerySnapshot snapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .collection('Folder')
+          .where('folder', isEqualTo: folderName)
+          .get();
+      return snapshot.docs.isEmpty;
+    }
+    return false;
   }
 
   Future<void> addCollectionWithMetadata(String userId, String collectionName, Map<String, dynamic> data) async {
@@ -165,13 +183,30 @@ class _SumupPageState extends State<SumupPage> {
           actions: <Widget>[
             TextButton(
               child: Text('저장'),
-              onPressed: () {
+              onPressed: () async {
                 if (newFolderName.isNotEmpty) {
-                  setState(() {
-                    _folderName = newFolderName;
-                  });
+                  // Check if the new folder name is unique
+                  if (await _isFolderNameUnique(newFolderName)) {
+                    setState(() {
+                      _folderName = newFolderName;
+                    });
+
+                    // Add new folder to the list
+                    await FirebaseFirestore.instance
+                        .collection('users')
+                        .doc(FirebaseAuth.instance.currentUser!.uid)
+                        .collection("Folder")
+                        .add({
+                      'folder': _folderName,
+                    });
+
+                    Navigator.of(context).pop();
+                  } else {
+                    _showErrorDialog('폴더명이 중복되었습니다.');
+                  }
+                } else {
+                  Navigator.of(context).pop();
                 }
-                Navigator.of(context).pop();
               },
             ),
           ],
@@ -212,83 +247,108 @@ class _SumupPageState extends State<SumupPage> {
     );
   }
 
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('오류'),
+          content: Text(message),
+          actions: <Widget>[
+            TextButton(
+              child: Text('확인'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final appState = Provider.of<AppState>(context);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('요약'),
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                const Text(
-                  '요약',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 16.0),
-                Container(
-                  padding: const EdgeInsets.all(16.0),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(8.0),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withOpacity(0.5),
-                        spreadRadius: 2,
-                        blurRadius: 5,
-                        offset: const Offset(0, 3),
-                      ),
-                    ],
-                  ),
-                  child: Text(
-                    _recognizedText,
-                    style: const TextStyle(fontSize: 16),
-                  ),
-                ),
-                const SizedBox(height: 16.0),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: <Widget>[
-                    AnimatedIconButton(
-                      label: '대화하기',
-                      icon: Icons.comment,
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => SummaryPage(extractedText: _recognizedText),
-                          ),
-                        );
-                      },
-                    ),
-                    AnimatedIconButton(
-                      label: '복사하기',
-                      icon: Icons.copy,
-                      onTap: () => _copyToClipboard(_recognizedText),
-                    ),
-                    AnimatedIconButton(
-                      label: '공유하기',
-                      icon: Icons.share,
-                      onTap: () {
-                        // 공유하기 기능 구현
-                      },
+      body: SingleChildScrollView( // Added SingleChildScrollView
+        padding: const EdgeInsets.all(16.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              const Text(
+                '요약',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16.0),
+              Container(
+                padding: const EdgeInsets.all(16.0),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(8.0),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.5),
+                      spreadRadius: 2,
+                      blurRadius: 5,
+                      offset: const Offset(0, 3),
                     ),
                   ],
                 ),
-                const SizedBox(height: 16.0),
-                Center(
-                  child: ElevatedButton(
-                    onPressed: _saveData,
-                    child: const Text('저장하기'),
-                  ),
+                child: Text(
+                  appState.summaryText.isNotEmpty ? appState.summaryText : '텍스트 인식 중...',
+                  style: const TextStyle(fontSize: 16),
                 ),
-              ],
-            ),
+              ),
+              const SizedBox(height: 16.0),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: <Widget>[
+                  AnimatedIconButton(
+                    label: '수정하기',
+                    icon: Icons.edit,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => SummaryEditPage(recognizedText: appState.summaryText.isNotEmpty ? appState.summaryText : '텍스트 인식 중...'),
+                        ),
+                      );
+                    },
+                  ),
+                  AnimatedIconButton(
+                    label: '복사하기',
+                    icon: Icons.copy,
+                    onTap: () => _copyToClipboard(appState.summaryText.isNotEmpty ? appState.summaryText : '텍스트 인식 중...'),
+                  ),
+                  AnimatedIconButton(
+                    label: '대화하기',
+                    icon: Icons.comment,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => SummaryPage(extractedText: appState.summaryText.isNotEmpty ? appState.summaryText : '텍스트 인식 중...'),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16.0),
+              Center(
+                child: ElevatedButton(
+                  onPressed: _saveData,
+                  child: const Text('저장하기'),
+                ),
+              ),
+            ],
           ),
         ),
       ),

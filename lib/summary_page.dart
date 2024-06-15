@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'openai_service.dart';
+import 'package:provider/provider.dart';
+import 'app_state.dart';
 
 class SummaryPage extends StatefulWidget {
   final String extractedText;
@@ -35,6 +37,9 @@ class _SummaryPageState extends State<SummaryPage> {
       _messages.add({'role': 'assistant', 'content': response});
       _isLoading = false;
     });
+
+    // Update AppState with the initial message and response
+    Provider.of<AppState>(context, listen: false).setSummaryText(response);
   }
 
   void _sendMessage() async {
@@ -54,6 +59,9 @@ class _SummaryPageState extends State<SummaryPage> {
     });
 
     _controller.clear();
+
+    // Update AppState with the new message and response
+    Provider.of<AppState>(context, listen: false).setSummaryText(response);
   }
 
   @override

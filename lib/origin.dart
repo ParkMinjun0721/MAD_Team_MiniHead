@@ -49,79 +49,75 @@ class _OriginPageState extends State<OriginPage> {
 
   @override
   Widget build(BuildContext context) {
+    final maxWidth = MediaQuery.of(context).size.width * 0.9; // Adjust the multiplier as needed
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('원본'),
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              const Text(
-                '원본',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+      body: SingleChildScrollView( // Added SingleChildScrollView
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            const Text(
+              '원본',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16.0),
+            Container(
+              padding: const EdgeInsets.all(16.0),
+              constraints: BoxConstraints(
+                maxWidth: maxWidth,
               ),
-              const SizedBox(height: 16.0),
-              Container(
-                padding: const EdgeInsets.all(16.0),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(8.0),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.5),
-                      spreadRadius: 2,
-                      blurRadius: 5,
-                      offset: const Offset(0, 3),
-                    ),
-                  ],
-                ),
-                child: Text(
-                  _recognizedText,
-                  style: const TextStyle(fontSize: 16),
-                ),
-              ),
-              const SizedBox(height: 16.0),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: <Widget>[
-                  AnimatedIconButton(
-                    label: '수정하기',
-                    icon: Icons.edit,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => OriginEditPage(
-                            initialText: _recognizedText,
-                            onSave: (String editedText) {
-                              setState(() {
-                                _recognizedText = editedText;
-                              });
-                            },
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                  AnimatedIconButton(
-                    label: '복사하기',
-                    icon: Icons.copy,
-                    onTap: () => _copyToClipboard(_recognizedText),
-                  ),
-                  AnimatedIconButton(
-                    label: '공유하기',
-                    icon: Icons.share,
-                    onTap: () {
-                      // 공유하기 기능 구현
-                    },
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8.0),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.5),
+                    spreadRadius: 2,
+                    blurRadius: 5,
+                    offset: const Offset(0, 3),
                   ),
                 ],
               ),
-            ],
-          ),
+              child: Text(
+                _recognizedText,
+                style: const TextStyle(fontSize: 16),
+              ),
+            ),
+            const SizedBox(height: 16.0),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: <Widget>[
+                AnimatedIconButton(
+                  label: '수정하기',
+                  icon: Icons.edit,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => OriginEditPage(
+                          initialText: _recognizedText,
+                          onSave: (String editedText) {
+                            setState(() {
+                              _recognizedText = editedText;
+                            });
+                          },
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                AnimatedIconButton(
+                  label: '복사하기',
+                  icon: Icons.copy,
+                  onTap: () => _copyToClipboard(_recognizedText),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
       floatingActionButton: FloatingActionButton(
@@ -142,7 +138,6 @@ class _OriginPageState extends State<OriginPage> {
     );
   }
 }
-
 
 class AnimatedIconButton extends StatefulWidget {
   final String label;
